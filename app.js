@@ -18,28 +18,59 @@ async function init() {
         const data = []
 
         for (let year = 1950; year <= 2021; year++) {
-            const subdata = {}
+            const subData = { year };
 
             try {
-                subdata.year = year
+                const result = await db.query("SELECT country_name, population, region FROM population WHERE year = $1 AND region IS NOT NULL ORDER BY population DESC LIMIT 13", [year]);
 
-                const totalResult = await db.query("select population from population where year = $1 and country_name = $2", [year, 'World'])
-                subdata.totalPopulation = totalResult.rows[0].population
+                subData.totalPopulation = result.rows[0].population
+                result.rows.shift()
+                subData.population = result.rows;
 
-                const result = await db.query("select country_name,population,region from population where year = $1 and region is not null order by population desc limit 12", [year])
-                subdata.population = result.rows
-
-                data.push(subdata);
-
+                data.push(subData);
             } catch (error) {
                 console.error("Database Error:", error);
-                res.json({ "Database Error:": error })
+                throw error; // Propagate the error to the calling function
             }
         }
 
         res.json({ data })
 
     })
+
+    // app.get('/', async (req, res) => {
+    //     try {
+    //         const data = await fetchDataFromDatabase();
+    //         res.json({ data });
+    //     } catch (error) {
+    //         console.error("Database Error:", error);
+    //         res.json({ "Database Error:": error });
+    //     }
+    // });
+
+    // async function fetchDataFromDatabase() {
+    //     const data = [];
+
+    //     for (let year = 1950; year <= 2021; year++) {
+    //         const subData = { year };
+
+    //         try {
+    //             const result = await db.query("SELECT country_name, population, region FROM population WHERE year = $1 AND region IS NOT NULL ORDER BY population DESC LIMIT 13", [year]);
+
+    //             subData.totalPopulation = result.rows[0].population
+    //             result.rows.shift()
+    //             subData.population = result.rows;
+
+    //             data.push(subData);
+    //         } catch (error) {
+    //             console.error("Database Error:", error);
+    //             throw error; // Propagate the error to the calling function
+    //         }
+    //     }
+
+    //     return data;
+    // }
+
 
     app.get('*', (req, res) => {
         res.status(404).send('Not found')
