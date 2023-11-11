@@ -26,7 +26,7 @@ async function init() {
         }
 
         try {
-            const data = await db.query("select country_name,population,region from population where year = $1 and region is not null limit 12", [year])
+            const data = await db.query("select country_name,population,region from population where year = $1 and region is not null order by population desc limit 12", [year])
 
             res.json({ data: data.rows })
 
