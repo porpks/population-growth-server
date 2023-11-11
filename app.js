@@ -14,26 +14,31 @@ async function init() {
     app.use(bodyParser.json())
 
     app.get('/', async (req, res) => {
-        let year = req.query.year
+        // let year = req.query.year
+        const data = []
 
-        if (!year) {
-            res.status(401).json({ message: "plesse input the year" })
-            return
+        for (let year = 1950; year <= 2021; year++) {
+            const subdata = {}
+
+            try {
+                subdata.year = year
+
+                const totalResult = await db.query("select population from population where year = $1 and country_name = $2", [year, 'World'])
+                subdata.totalPopulation = totalResult.rows[0].population
+
+                const result = await db.query("select country_name,population,region from population where year = $1 and region is not null order by population desc limit 12", [year])
+                subdata.population = result.rows
+
+                data.push(subdata);
+
+            } catch (error) {
+                console.error("Database Error:", error);
+                res.json({ "Database Error:": error })
+            }
         }
-        else if (year < 1950 || year > 2021) {
-            res.status(404).json({ message: `year ${year} not found` })
-            return
-        }
 
-        try {
-            const data = await db.query("select country_name,population,region from population where year = $1 and region is not null order by population desc limit 12", [year])
+        res.json({ data })
 
-            res.json({ data: data.rows })
-
-        } catch (error) {
-            console.error("Database Error:", error);
-            res.json({ "Database Error:": error })
-        }
     })
 
     app.get('*', (req, res) => {
