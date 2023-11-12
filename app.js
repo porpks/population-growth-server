@@ -14,32 +14,12 @@ async function init() {
     app.use(bodyParser.json())
 
     app.get('/', async (req, res) => {
-        // let year = req.query.year
-        const data = { totalPopulation: {}, population: {} }
-
-        for (let year = 1950; year <= 2021; year++) {
-            // const subData = { year };
-
-            try {
-                const result = await db.query("SELECT country_name, population, region FROM population WHERE year = $1 AND region IS NOT NULL ORDER BY population DESC LIMIT 13", [year]);
-
-                data.totalPopulation[year] = result.rows[0].population
-                result.rows.shift()
-                data.population[year] = result.rows;
-
-                // data.push(subData);
-            } catch (error) {
-                console.error("Database Error:", error);
-                throw error; // Propagate the error to the calling function
-            }
+        let year = req.query.year
+        if (!year) {
+            res.status(401).json({ message: `please request with parameter 'year'` })
+            return
         }
 
-        res.json({ data: data })
-
-    })
-
-    app.get('/test', async (req, res) => {
-        let year = req.query.year
         let data
         try {
             const result = await db.query("SELECT country_name, population, region FROM population WHERE year = $1 AND region IS NOT NULL ORDER BY population DESC LIMIT 13", [year]);
@@ -52,8 +32,8 @@ async function init() {
         }
 
         res.json({ data })
-    });
 
+    })
 
     app.get('*', (req, res) => {
         res.status(404).send('Not found')
