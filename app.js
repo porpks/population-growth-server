@@ -15,15 +15,22 @@ async function init() {
 
     app.get('/', async (req, res) => {
         let year = req.query.year
+        let region = req.query.region
         if (!year) {
             res.status(401).json({ message: `please request with parameter 'year'` })
             return
         }
+        if (!region) {
+            res.status(401).json({ message: `please request with parameter 'region'` })
+            return
+        }
+
+        region = 'World,' + region
+        const regionString = region.split(',').map(region => `'${region}'`).join(',')
 
         let data
         try {
-            const result = await db.query("SELECT country_name, population, region FROM population WHERE year = $1 AND region IS NOT NULL ORDER BY population DESC LIMIT 13", [year]);
-
+            const result = await db.query(`SELECT country_name, population, region FROM population WHERE year = ${year} AND region IN (${regionString}) ORDER BY population DESC LIMIT 13`);
             data = result.rows;
 
         } catch (error) {
