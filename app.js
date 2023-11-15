@@ -30,7 +30,7 @@ async function init() {
 
         let data
         try {
-            const result = await db.query(`SELECT country_name, population, region FROM population WHERE year = ${year} AND region IN (${regionString}) ORDER BY population DESC LIMIT 13`);
+            const result = await db.query(`SELECT country_name, population, region, image_url FROM population WHERE year = ${year} AND region IN (${regionString}) ORDER BY population DESC LIMIT 13`);
             data = result.rows;
 
         } catch (error) {
